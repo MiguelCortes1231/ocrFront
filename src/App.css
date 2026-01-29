@@ -1,0 +1,252 @@
+/**
+ * 🎨 App.css
+ * =========================================================
+ * 📦 Estilos específicos de la aplicación (scope App).
+ *
+ * Este archivo contiene estilos base generados por Vite/React
+ * que sirven como:
+ * - 🧱 Contenedor principal (#root)
+ * - 🖼️ Estilos de logo y animaciones
+ * - 🧩 Clases utilitarias simples (.card, .read-the-docs)
+ *
+ * ⚠️ IMPORTANTE
+ * - ❌ No se modifica ningún estilo existente
+ * - ❌ No se elimina ni reordena código
+ * - ✅ Solo se agrega documentación explicativa
+ * - 📘 Estilo AngularDoc / JSDoc + emojis
+ * =========================================================
+ */
+
+/* =========================================================
+ * 🧱 #root
+ * ---------------------------------------------------------
+ * Contenedor principal donde React monta la aplicación.
+ * Normalmente corresponde al <div id="root"></div> del HTML.
+ *
+ * Responsabilidades:
+ * - 📐 Limitar ancho máximo
+ * - 📍 Centrar contenido horizontalmente
+ * - 📦 Proveer padding general
+ * =========================================================
+ */
+#root {
+  /**
+   * 📏 Ancho máximo del layout
+   * Evita que el contenido se extienda demasiado en pantallas grandes.
+   */
+  max-width: 1280px;
+
+  /**
+   * 📍 margin: 0 auto
+   * Centra el contenedor horizontalmente.
+   */
+  margin: 0 auto;
+
+  /**
+   * 📦 Padding general
+   * Da aire visual alrededor de toda la app.
+   */
+  padding: 2rem;
+
+  /**
+   * 🎯 text-align
+   * Centra texto por defecto (útil en layout inicial/demo).
+   */
+  text-align: center;
+
+  /**
+   * 📱 Soporte para touch en móviles
+   */
+  touch-action: manipulation;
+}
+
+/* =========================================================
+ * 🖼️ .logo
+ * ---------------------------------------------------------
+ * Estilos para el logo de ejemplo (React/Vite).
+ * =========================================================
+ */
+.logo {
+  /**
+   * 📐 Altura fija del logo
+   */
+  height: 6em;
+
+  /**
+   * 📦 Espaciado interno
+   */
+  padding: 1.5em;
+
+  /**
+   * 🚀 Optimización de animaciones
+   * Indica al navegador que `filter` cambiará.
+   */
+  will-change: filter;
+
+  /**
+   * ✨ Transición suave del efecto visual
+   */
+  transition: filter 300ms;
+}
+
+/**
+ * ✨ Hover general del logo
+ * Aplica un glow azul.
+ */
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+/**
+ * ⚛️ Hover específico para logo React
+ * Usa un tono azul distinto.
+ */
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+/* =========================================================
+ * 🔄 Animación logo-spin
+ * ---------------------------------------------------------
+ * Animación de rotación infinita usada en demos.
+ * =========================================================
+ */
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+ * ♿ prefers-reduced-motion
+ * ---------------------------------------------------------
+ * Respeta la configuración de accesibilidad del usuario.
+ * Si el usuario NO ha solicitado reducir movimiento,
+ * se aplica la animación.
+ * =========================================================
+ */
+@media (prefers-reduced-motion: no-preference) {
+  /**
+   * 🎯 Selector específico:
+   * - Segundo enlace <a>
+   * - Dentro, un elemento con clase .logo
+   */
+  a:nth-of-type(2) .logo {
+    /**
+     * 🔄 Animación infinita de 20s
+     */
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* =========================================================
+ * 🧾 .card
+ * ---------------------------------------------------------
+ * Clase utilitaria simple para tarjetas/contenedores.
+ * =========================================================
+ */
+.card {
+  /**
+   * 📦 Padding interno
+   */
+  padding: 2em;
+}
+
+/* =========================================================
+ * 📘 .read-the-docs
+ * ---------------------------------------------------------
+ * Texto auxiliar / informativo (ej. links de documentación).
+ * =========================================================
+ */
+.read-the-docs {
+  /**
+   * 🎨 Color gris suave
+   * No compite visualmente con el contenido principal.
+   */
+  color: #888;
+}
+
+/* =========================================================
+ * 📱 Responsividad para móviles
+ * ---------------------------------------------------------
+ * Ajustes específicos para pantallas pequeñas (smartphones)
+ * =========================================================
+ */
+
+/* 📱 Dispositivos móviles (hasta 768px) */
+@media (max-width: 768px) {
+  #root {
+    /**
+     * 📏 Eliminar padding lateral en móviles
+     * Para aprovechar todo el ancho de la pantalla
+     */
+    padding: 1rem 0.5rem;
+    
+    /**
+     * 📦 Ancho máximo del 100% en móviles
+     */
+    max-width: 100%;
+    
+    /**
+     * 🔍 Evitar zoom automático en inputs en iOS
+     */
+    touch-action: manipulation;
+  }
+
+  .card {
+    /**
+     * 📐 Padding reducido en móviles
+     */
+    padding: 1rem;
+  }
+
+  .logo {
+    /**
+     * 📏 Tamaño reducido del logo en móviles
+     */
+    height: 4em;
+    padding: 1em;
+  }
+}
+
+/* 📱 Dispositivos muy pequeños (hasta 480px) */
+@media (max-width: 480px) {
+  #root {
+    /**
+     * 📏 Padding aún más reducido
+     */
+    padding: 0.5rem;
+  }
+
+  .logo {
+    /**
+     * 📏 Logo más pequeño en pantallas muy pequeñas
+     */
+    height: 3.5em;
+    padding: 0.75em;
+  }
+}
+
+/* 📱 Dispositivos en orientación horizontal */
+@media (max-height: 500px) and (orientation: landscape) {
+  #root {
+    /**
+     * 📏 Padding especial para modo horizontal en móviles
+     */
+    padding: 0.5rem;
+  }
+}
+
+/* 📱 Mejorar feedback táctil para botones */
+@media (hover: none) and (pointer: coarse) {
+  .logo {
+    /**
+     * 📱 Aumentar área táctil en dispositivos táctiles
+     */
+    min-height: 48px;
+    min-width: 48px;
+  }
+}

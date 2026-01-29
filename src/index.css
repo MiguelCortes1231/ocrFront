@@ -1,0 +1,400 @@
+/**
+ * 🎨 index.css
+ * =========================================================
+ * 🌍 Hoja de estilos globales de la aplicación.
+ *
+ * Este archivo define:
+ * - 🧱 Estilos base del documento (reset moderno)
+ * - 🎯 Tipografía por defecto
+ * - 🌗 Soporte para modo claro / oscuro (prefers-color-scheme)
+ * - ✨ Mejoras de renderizado y suavizado de fuentes
+ *
+ * 📐 Filosofía:
+ * - Mantener estilos globales mínimos
+ * - Delegar el diseño principal a Material UI (ThemeProvider)
+ *
+ * ⚠️ IMPORTANTE
+ * - ❌ No se modifica ninguna regla existente
+ * - ❌ No se elimina ni reordena código
+ * - ✅ Solo se agrega documentación estilo AngularDoc
+ * =========================================================
+ */
+
+/* =========================================================
+ * 🧩 :root
+ * ---------------------------------------------------------
+ * Variables y configuración base del documento.
+ * Se aplican a TODO el árbol del DOM.
+ * =========================================================
+ */
+:root {
+  /**
+   * 🔤 font-family
+   * Stack de fuentes multiplataforma:
+   * - system-ui / Avenir / Helvetica / Arial
+   * Garantiza buena legibilidad en Windows, macOS y Linux.
+   */
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  /**
+   * 📏 line-height
+   * Altura de línea cómoda para lectura prolongada.
+   */
+  line-height: 1.5;
+
+  /**
+   * ⚖️ font-weight
+   * Peso base neutro.
+   */
+  font-weight: 400;
+
+  /**
+   * 🌗 color-scheme
+   * Indica al navegador que el sitio soporta
+   * tanto modo claro como oscuro.
+   */
+  color-scheme: light dark;
+
+  /**
+   * 🎨 color
+   * Color de texto por defecto en modo oscuro.
+   */
+  color: rgba(255, 255, 255, 0.87);
+
+  /**
+   * 🖤 background-color
+   * Fondo base en modo oscuro.
+   */
+  background-color: #242424;
+
+  /**
+   * ✨ font-synthesis
+   * Evita que el navegador "invente" negritas o itálicas.
+   */
+  font-synthesis: none;
+
+  /**
+   * 🧠 text-rendering
+   * Prioriza legibilidad del texto.
+   */
+  text-rendering: optimizeLegibility;
+
+  /**
+   * 🖥️ Suavizado de fuentes (cross-browser)
+   */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================
+ * 🔗 Enlaces <a>
+ * ---------------------------------------------------------
+ * Estilos base para links.
+ * =========================================================
+ */
+a {
+  /**
+   * ⚖️ font-weight
+   * Un poco más fuerte para destacar enlaces.
+   */
+  font-weight: 500;
+
+  /**
+   * 🎨 color
+   * Azul estilo Vite/React.
+   */
+  color: #646cff;
+
+  /**
+   * ❌ Quitar subrayado por defecto
+   */
+  text-decoration: inherit;
+}
+
+/**
+ * ✨ Hover en enlaces
+ * Cambia el color al pasar el mouse.
+ */
+a:hover {
+  color: #535bf2;
+}
+
+/* =========================================================
+ * 🧍 body
+ * ---------------------------------------------------------
+ * Configuración base del cuerpo del documento.
+ * =========================================================
+ */
+body {
+  /**
+   * ❌ Eliminar margen por defecto del navegador
+   */
+  margin: 0;
+
+  /**
+   * 📐 Flexbox
+   * Centra el contenido principal (útil en apps SPA).
+   */
+  display: flex;
+  place-items: center;
+
+  /**
+   * 📱 Responsividad mínima
+   */
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* =========================================================
+ * 📰 Encabezados <h1>
+ * =========================================================
+ */
+h1 {
+  /**
+   * 🔠 Tamaño grande para títulos principales
+   */
+  font-size: 3.2em;
+
+  /**
+   * 📏 Altura de línea compacta
+   */
+  line-height: 1.1;
+}
+
+/* =========================================================
+ * 🔘 Botones HTML nativos
+ * ---------------------------------------------------------
+ * Nota:
+ * - La mayoría de botones reales usan MUI
+ * - Estos estilos aplican a botones HTML básicos
+ * =========================================================
+ */
+button {
+  /**
+   * 🔲 Bordes redondeados
+   */
+  border-radius: 8px;
+
+  /**
+   * ❌ Quitar borde visible inicial
+   */
+  border: 1px solid transparent;
+
+  /**
+   * 📦 Padding cómodo
+   */
+  padding: 0.6em 1.2em;
+
+  /**
+   * 🔠 Tipografía consistente
+   */
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+
+  /**
+   * 🎨 Fondo oscuro por defecto
+   */
+  background-color: #1a1a1a;
+
+  /**
+   * 🖱️ Cursor tipo botón
+   */
+  cursor: pointer;
+
+  /**
+   * ✨ Transición suave en hover
+   */
+  transition: border-color 0.25s;
+}
+
+/**
+ * ✨ Hover en botones
+ */
+button:hover {
+  border-color: #646cff;
+}
+
+/**
+ * 🎯 Focus accesible
+ */
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* =========================================================
+ * 🌞 Modo claro (prefers-color-scheme: light)
+ * ---------------------------------------------------------
+ * Se activa automáticamente según el SO del usuario.
+ * =========================================================
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    /**
+     * 🎨 Texto oscuro para fondo claro
+     */
+    color: #213547;
+
+    /**
+     * 🤍 Fondo claro
+     */
+    background-color: #ffffff;
+  }
+
+  /**
+   * 🔗 Hover en enlaces (modo claro)
+   */
+  a:hover {
+    color: #747bff;
+  }
+
+  /**
+   * 🔘 Botones (modo claro)
+   */
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+/* =========================================================
+ * 📱 Responsividad global para móviles
+ * ---------------------------------------------------------
+ * Mejoras de usabilidad en dispositivos táctiles
+ * =========================================================
+ */
+
+/* 📱 Dispositivos móviles (hasta 768px) */
+@media (max-width: 768px) {
+  :root {
+    /**
+     * 🔠 Tamaño de fuente reducido para móviles
+     */
+    font-size: 14px;
+    
+    /**
+     * 📏 Altura de línea optimizada para móviles
+     */
+    line-height: 1.4;
+  }
+
+  body {
+    /**
+     * 📐 Eliminar centrado vertical en móviles
+     * Para permitir scroll natural
+     */
+    place-items: start;
+    
+    /**
+     * 📏 Tamaño mínimo ajustado
+     */
+    min-height: auto;
+  }
+
+  h1 {
+    /**
+     * 🔠 Título más pequeño en móviles
+     */
+    font-size: 2.2em;
+    line-height: 1.2;
+  }
+
+  button {
+    /**
+     * 🖱️ Tamaño de botón más grande para touch
+     */
+    min-height: 44px;
+    min-width: 44px;
+    
+    /**
+     * 📏 Padding aumentado para mejor táctil
+     */
+    padding: 0.8em 1.5em;
+    
+    /**
+     * 🔠 Fuente ligeramente más grande
+     */
+    font-size: 16px;
+  }
+}
+
+/* 📱 Dispositivos muy pequeños (hasta 480px) */
+@media (max-width: 480px) {
+  :root {
+    font-size: 13px;
+  }
+
+  h1 {
+    font-size: 1.8em;
+  }
+
+  button {
+    padding: 0.7em 1.2em;
+    min-height: 40px;
+  }
+}
+
+/* 📱 Soporte para dispositivos con notches */
+@supports (padding: max(0px)) {
+  body {
+    /**
+     * 📱 Ajuste seguro para notches (iPhone X+, etc.)
+     */
+    padding-left: max(0.5rem, env(safe-area-inset-left));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* 📱 Prevenir zoom en inputs en iOS */
+input, select, textarea {
+  font-size: 16px; /* Evita zoom automático en iOS */
+}
+
+/* 📱 Mejorar feedback táctil */
+button:active {
+  transform: scale(0.98); /* Efecto de presionado */
+  transition: transform 0.1s;
+}
+
+/* 📱 Ajustes específicos para orientación horizontal en móviles */
+@media (max-height: 500px) and (orientation: landscape) {
+  body {
+    /**
+     * 📐 Menor altura mínima en landscape
+     */
+    min-height: auto;
+    
+    /**
+     * 📏 Padding reducido
+     */
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+}
+
+/* 📱 Mejorar usabilidad táctil */
+@media (hover: none) and (pointer: coarse) {
+  button {
+    /**
+     * 🖱️ Tamaño mínimo para dedos
+     */
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  a {
+    /**
+     * 📱 Aumentar área táctil para enlaces
+     */
+    padding: 0.5em;
+    display: inline-block;
+  }
+}
+
+/* 📱 Prevenir scroll horizontal no deseado */
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
