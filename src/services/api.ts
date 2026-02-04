@@ -52,6 +52,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
  * - `baseURL`: URL raíz del backend
  * - `timeout`: 30s (OCR puede tardar)
  *
+ * 🚨 Manejo de errores personalizado:
+ * - Si el timeout se excede (30s), se lanza un error descriptivo
+ * - El mensaje guía al usuario a verificar calidad de imagen y conexión
+ *
  * Beneficios:
  * - Reutilización
  * - Configuración centralizada
@@ -63,6 +67,60 @@ const api = axios.create({
   timeout: 30000,
 });
 
+/**
+ * 🚨 Interceptor de respuestas para manejar errores de timeout
+ * ---------------------------------------------------------
+ * Este interceptor captura específicamente errores de timeout
+ * y los transforma en mensajes más amigables para el usuario.
+ *
+ * ⚠️ Causas comunes de timeout:
+ * 1. 🖼️ Imagen de baja calidad → El OCR tarda más en procesar
+ * 2. 🌐 Conexión lenta/inestable → La transferencia de imagen es lenta
+ * 3. 🔧 Sobrecarga del servidor → El backend está ocupado
+ * ---------------------------------------------------------
+ */
+api.interceptors.response.use(
+  (response) => {
+    // ✅ Si la respuesta es exitosa, simplemente la retornamos
+    return response;
+  },
+  (error) => {
+    // 🔍 Verificar si es un error de timeout
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      console.error('⏰ Timeout detectado:', {
+        code: error.code,
+        message: error.message,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          timeout: error.config?.timeout
+        }
+      });
+
+      // 🚨 Crear un nuevo error con mensaje descriptivo para el usuario
+      const timeoutError = new Error(
+        '⏰ Timeout excedido (30s). Esto puede deberse a:\n' +
+        '1. 🖼️ La imagen no tiene buena calidad (intenta subir una más nítida)\n' +
+        '2. 🌐 Conexión lenta o inestable (verifica tu internet)\n' +
+        '3. 🔧 El servidor está ocupado (intenta nuevamente en unos momentos)\n\n' +
+        '✅ Recomendaciones:\n' +
+        '• Usa imágenes bien iluminadas y sin reflejos\n' +
+        '• Asegúrate de que todo el texto sea legible\n' +
+        '• Verifica tu conexión a internet\n' +
+        '• Intenta con una imagen de menor resolución'
+      );
+      
+      // 🏷️ Marcar el error como timeout para manejo específico en UI
+      timeoutError.name = 'TimeoutError';
+      
+      // ❌ Rechazar con el nuevo error descriptivo
+      return Promise.reject(timeoutError);
+    }
+
+    // 🔄 Para otros tipos de error, simplemente los propagamos
+    return Promise.reject(error);
+  }
+);
 /**
  * 🧩 Servicio OCR
  * =========================================================

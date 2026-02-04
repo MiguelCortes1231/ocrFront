@@ -329,7 +329,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           📁 Subir desde Archivo
         </Button>
 
-        {/* 📸 Botón para abrir cámara */}
+        {/* 📸 Botón para abrir cámara 
         <Button
           variant="outlined"
           color="secondary"
@@ -341,6 +341,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         >
           📸 Usar Cámara
         </Button>
+        */}
       </Box>
 
       {/* 🏷️ Input oculto para archivos */}

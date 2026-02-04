@@ -549,8 +549,15 @@ const App: React.FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('❌ Error en OCR:', error);
-      toast.error(`❌ Error en OCR: ${error.message || 'Error desconocido'}`);
-    } finally {
+      
+      if (error.name === 'TimeoutError') {
+        // 🕒 Error específico de timeout (ya viene formateado del interceptor)
+        toast.error(`❌ ${error.message}`);
+      } else {
+        // 🔧 Otros tipos de error
+        toast.error(`❌ Error en OCR: ${error.message || 'Error desconocido'}`);
+      }
+    }finally {
       setLoading(false);
     }
   };
