@@ -46,7 +46,6 @@ import {
   LinearProgress
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import ImageIcon from '@mui/icons-material/Image';
 
 /**
@@ -84,7 +83,6 @@ interface ImageUploaderProps {
  */
 const ImageUploader: React.FC<ImageUploaderProps> = ({ 
   onImageSelect, 
-  onCameraOpen 
 }) => {
   /**
    * 📌 fileInputRef
