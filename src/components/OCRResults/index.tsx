@@ -148,11 +148,6 @@ const OCRResults: React.FC<OCRResultsProps> = ({
   const mediaQueryIsMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isMobile = propIsMobile !== undefined ? propIsMobile : mediaQueryIsMobile;
 
-  /**
-   * 📟 isTablet
-   * - True si pantalla está en < lg (tablets/mediano).
-   */
-  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
 
   /**
    * 📱 isSmallMobile

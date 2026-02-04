@@ -38,12 +38,10 @@ import {
   Typography, 
   Button, 
   CircularProgress,
-  Alert,
   Grid,
   Tooltip
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ImageIcon from '@mui/icons-material/Image';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import EditIcon from '@mui/icons-material/Edit';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -106,8 +104,7 @@ const PreviewPanel: React.FC<PreviewPanelProps> = ({
   isProcessing,
   onUseOriginal,
   onUseEdited,
-  onUseEnhanced,
-  onEnhance
+  onUseEnhanced
 }) => {
   /**
    * 🧠 getCurrentImageType

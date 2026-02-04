@@ -25,7 +25,7 @@
  * =========================================================
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState,  useEffect } from 'react';
 import {
   Box,
   Container,
@@ -100,7 +100,7 @@ const steps = [
  * - Aquí solo se importa el tipo; el recorte real se gestiona en ImageEditor.
  * ---------------------------------------------------------
  */
-import type { PixelCrop } from 'react-image-crop';
+
 
 /**
  * 🧠 App
@@ -172,7 +172,8 @@ const App: React.FC = () => {
    *   - false -> Anverso (POST /ocr)
    *   - true  -> Reverso (POST /ocrreverso)
    */
-  const [isReverso, setIsReverso] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isReverso, _setIsReverso] = useState(false); // 🔧 Cambio: agregar prefijo _ para indicar que no se usa
 
   // ⚙️ Estados de proceso
   /**
@@ -206,20 +207,6 @@ const App: React.FC = () => {
    */
   const [isImageLoading, setIsImageLoading] = useState(false);
 
-  // 🔄 Referencias
-  /**
-   * 🧾 canvasRef
-   * - Referencia a un canvas (actualmente no se usa directamente aquí).
-   * - Suele ser útil para transformaciones de imagen (rotación/crop) si se requiriera.
-   */
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  /**
-   * 📁 fileInputRef
-   * - Ref a un input file (no se usa directo aquí, pero útil para disparar selector).
-   * - El uploader suele manejar su propio input; se deja como utilidad.
-   */
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 🔍 Debug: Ver estado actual
   /**
@@ -709,7 +696,7 @@ const App: React.FC = () => {
           <ImageUploader
             onImageSelect={handleImageSelect}
             onCameraOpen={() => setCameraOpen(true)}
-            isMobile={isMobile}
+            // 🔧 Cambio: Eliminar la prop isMobile que no existe en ImageUploaderProps
           />
         );
 
@@ -782,7 +769,7 @@ const App: React.FC = () => {
             onImageChange={handleImageEdit}
             onCropComplete={() => {}}
             onResetToOriginal={handleResetToOriginal}
-            isMobile={isMobile}
+            // 🔧 Cambio: Eliminar la prop isMobile que no existe en ImageEditorProps
           />
         );
 
@@ -804,7 +791,7 @@ const App: React.FC = () => {
             onUseEdited={() => handleSelectImage('edited')}
             onUseEnhanced={() => handleSelectImage('enhanced')}
             onEnhance={handleEnhanceImage}
-            isMobile={isMobile}
+            // 🔧 Cambio: Eliminar la prop isMobile que no existe en PreviewPanelProps
           />
         );
 
@@ -826,7 +813,7 @@ const App: React.FC = () => {
               processedImage: imageSrc, // Imagen que se procesó (puede estar editada)
               // confidence: ocrData?.confidence // Si tu API devuelve confianza
             }}
-            isMobile={isMobile}
+            // 🔧 Cambio: Eliminar la prop isMobile que no existe en OCRResultsProps
           />
         );
 
@@ -1222,7 +1209,7 @@ const App: React.FC = () => {
           setCameraOpen(false);
         }}
         onCapture={handleCameraCapture}
-        isMobile={isMobile}
+        // 🔧 Cambio: Eliminar la prop isMobile que no existe en CameraCaptureProps
       />
 
       {/* 🍞 Notificaciones */}

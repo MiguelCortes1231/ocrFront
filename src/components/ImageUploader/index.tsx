@@ -230,7 +230,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
 
       // Simular un cambio de input
       const event = {
