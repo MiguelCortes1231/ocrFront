@@ -170,12 +170,41 @@ const OCRResults: React.FC<OCRResultsProps> = ({
    *
    * @param text Texto a copiar
    */
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // Podrías agregar una notificación aquí si quieres
-      console.log('Texto copiado:', text);
-    });
-  };
+const copyToClipboard = async (text: string) => {
+  try {
+    // ✅ Clipboard API moderna (requiere contexto seguro en la mayoría de casos)
+    if (navigator?.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      console.log("Texto copiado:", text);
+      return;
+    }
+
+    // 🛟 Fallback para HTTP / navegadores viejos / contextos no seguros
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+
+    // Evitar “brincos” en la UI
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    if (!ok) throw new Error("execCommand(copy) devolvió false");
+
+    console.log("Texto copiado (fallback):", text);
+  } catch (err) {
+    console.error("No se pudo copiar al portapapeles:", err);
+    // aquí podrías disparar un Snackbar/Alert si quieres
+  }
+};
+
 
   /**
    * ⏳ Estado: LOADING
