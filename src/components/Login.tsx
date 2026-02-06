@@ -68,7 +68,6 @@ const Login: React.FC = () => {
   // 🎨 Hook de tema y media queries para responsividad
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
   // 🧭 Navegación
   const navigate = useNavigate();
