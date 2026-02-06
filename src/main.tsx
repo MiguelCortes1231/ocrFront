@@ -20,7 +20,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// 📦 Componentes
 import App from './App';
+import Login from './components/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 /**
  * 🎨 Tema global de MUI
@@ -122,15 +127,36 @@ const theme = createTheme({
  *    - 🧼 Normaliza estilos base (reset moderno)
  *    - Mejora consistencia visual entre navegadores
  *
- * 6) `<App />`
- *    - 🚀 Tu aplicación real: wizard, editor, cámara, OCR, etc.
+ * 6) `<Router>`
+ *    - 🧭 Enrutador principal de la aplicación
+ *    - Define rutas públicas y protegidas
+ *
+ * 7) Rutas:
+ *    - `/login` -> Login (pública)
+ *    - `/` -> App principal (protegida)
+ *    - Cualquier otra ruta -> redirige a `/`
  * ---------------------------------------------------------
  */
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <App />
+      <Router>
+        <Routes>
+          {/* 🔐 Ruta pública - Login */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* 🛡️ Ruta protegida - App principal */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <App />
+            </ProtectedRoute>
+          } />
+          
+          {/* 🔄 Redirección por defecto */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
     </ThemeProvider>
   </React.StrictMode>
 );

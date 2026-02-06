@@ -68,6 +68,34 @@ const api = axios.create({
 });
 
 /**
+ * 🔐 Interceptor para agregar token JWT automáticamente
+ * ---------------------------------------------------------
+ * Este interceptor se ejecuta antes de cada petición y:
+ * - Busca token JWT en localStorage
+ * - Si existe, lo agrega al header Authorization
+ * ---------------------------------------------------------
+ */
+api.interceptors.request.use(
+  (config) => {
+    // 🔍 Obtener token del almacenamiento local
+    const token = localStorage.getItem('jwt_token');
+    
+    // 🏷️ Si existe token y el endpoint requiere autenticación, agregarlo
+    // ⚠️ NOTA: Solo agregamos token a endpoints protegidos
+    // Por ahora solo /ocr requiere token, pero podemos extender
+    if (token && config.url?.includes('/ocr')) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('🔐 Token JWT agregado automáticamente a la petición');
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+/**
  * 🚨 Interceptor de respuestas para manejar errores de timeout
  * ---------------------------------------------------------
  * Este interceptor captura específicamente errores de timeout
@@ -116,11 +144,211 @@ api.interceptors.response.use(
       // ❌ Rechazar con el nuevo error descriptivo
       return Promise.reject(timeoutError);
     }
+    
+    // 🔍 Verificar si es un error 401 (No autorizado)
+    if (error.response?.status === 401) {
+      console.warn('🔐 Error 401 - Token inválido o expirado');
+      
+      // 🧹 Limpiar tokens expirados
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('laravel_token');
+      localStorage.removeItem('user_data');
+      
+      // 🔄 Redirigir a login si estamos en la app principal
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      
+      const authError = new Error('🔐 Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      authError.name = 'AuthError';
+      return Promise.reject(authError);
+    }
 
     // 🔄 Para otros tipos de error, simplemente los propagamos
     return Promise.reject(error);
   }
 );
+
+/**
+ * 🔐 Servicio de Autenticación
+ * =========================================================
+ * Maneja todo lo relacionado con login, logout y gestión de tokens.
+ * =========================================================
+ */
+export const authService = {
+  /**
+   * 🔑 Login de usuario
+   * ---------------------------------------------------------
+   * Endpoint backend:
+   * - POST /login
+   *
+   * 📥 Entrada:
+   * - username: string
+   * - password: string
+   *
+   * 📤 Salida:
+   * - token: JWT generado por nuestro backend
+   * - token_laravel: Token original de Laravel
+   * - user: Información del usuario
+   * - expires_in: Tiempo de expiración en segundos
+   *
+   * 🗃️ Almacenamiento:
+   * - Guarda tokens en localStorage
+   * - Guarda información de usuario
+   * ---------------------------------------------------------
+   */
+  login: async (username: string, password: string) => {
+    try {
+      const response = await api.post('/login', {
+        username,
+        password
+      });
+      
+      const { token, token_laravel, user, expires_in } = response.data;
+      
+      // 💾 Guardar tokens en localStorage
+      localStorage.setItem('jwt_token', token);
+      localStorage.setItem('laravel_token', token_laravel);
+      localStorage.setItem('user_data', JSON.stringify(user));
+      localStorage.setItem('token_expiry', (Date.now() + (expires_in * 1000)).toString());
+      
+      console.log('✅ Login exitoso, tokens guardados');
+      return response.data;
+      
+    } catch (error: any) {
+      console.error('❌ Error en login:', error);
+      
+      // 🎯 Manejo específico de error 401 (credenciales incorrectas)
+      if (error.response?.status === 401) {
+        throw new Error('❌ Usuario o contraseña incorrectos');
+      }
+      
+      // 🌐 Manejo de errores de conexión
+      if (error.message?.includes('Network Error') || error.code === 'ECONNABORTED') {
+        throw new Error('🔌 Error de conexión. Verifica tu internet y que el servidor esté funcionando.');
+      }
+      
+      // 🔄 Error genérico
+      throw new Error(error.response?.data?.message || 'Error al iniciar sesión');
+    }
+  },
+  
+  /**
+   * 🔍 Verificar token JWT
+   * ---------------------------------------------------------
+   * Endpoint backend:
+   * - GET /verify-token
+   *
+   * 📤 Salida:
+   * - user: Información del usuario
+   * - token_valid: boolean
+   * - remaining_minutes: minutos restantes de sesión
+   *
+   * 🎯 Uso:
+   * - Verificar validez del token al cargar la app
+   * - Renovar sesión si es necesario
+   * ---------------------------------------------------------
+   */
+  verifyToken: async () => {
+    const token = localStorage.getItem('jwt_token');
+    
+    if (!token) {
+      throw new Error('🔐 No hay token disponible');
+    }
+    
+    try {
+      const response = await api.get('/verify-token', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      return response.data;
+      
+    } catch (error: any) {
+      console.error('❌ Error verificando token:', error);
+      
+      // 🧹 Limpiar tokens inválidos
+      if (error.response?.status === 401) {
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('laravel_token');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('token_expiry');
+      }
+      
+      throw error;
+    }
+  },
+  
+  /**
+   * 🚪 Logout
+   * ---------------------------------------------------------
+   * Limpia todos los tokens y datos de usuario.
+   * ---------------------------------------------------------
+   */
+  logout: () => {
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('laravel_token');
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('token_expiry');
+    console.log('🚪 Sesión cerrada correctamente');
+  },
+  
+  /**
+   * 👤 Obtener información del usuario actual
+   * ---------------------------------------------------------
+   * Lee datos del usuario desde localStorage.
+   * ---------------------------------------------------------
+   */
+  getCurrentUser: () => {
+    const userStr = localStorage.getItem('user_data');
+    return userStr ? JSON.parse(userStr) : null;
+  },
+  
+  /**
+   * ⏰ Verificar si la sesión está activa
+   * ---------------------------------------------------------
+   * Verifica:
+   * 1. Que exista token JWT
+   * 2. Que no haya expirado (100 minutos)
+   * ---------------------------------------------------------
+   */
+  isSessionActive: () => {
+    const token = localStorage.getItem('jwt_token');
+    const expiry = localStorage.getItem('token_expiry');
+    
+    if (!token || !expiry) {
+      return false;
+    }
+    
+    const expiryTime = parseInt(expiry);
+    const currentTime = Date.now();
+    
+    // ✅ Verificar que el token no haya expirado (con margen de 1 minuto)
+    return currentTime < (expiryTime - 60000); // 1 minuto antes de expirar
+  },
+  
+  /**
+   * 🏷️ Obtener token JWT
+   * ---------------------------------------------------------
+   * Retorna el token JWT actual.
+   * ---------------------------------------------------------
+   */
+  getToken: () => {
+    return localStorage.getItem('jwt_token');
+  },
+  
+  /**
+   * 🏷️ Obtener token Laravel
+   * ---------------------------------------------------------
+   * Retorna el token Laravel actual.
+   * ---------------------------------------------------------
+   */
+  getLaravelToken: () => {
+    return localStorage.getItem('laravel_token');
+  }
+};
+
 /**
  * 🧩 Servicio OCR
  * =========================================================
@@ -153,6 +381,9 @@ export const ocrService = {
    * - Domicilio
    * - Vigencia
    * - Indicador `es_ine`
+   *
+   * 🔐 Requiere:
+   * - Token JWT válido en header Authorization
    *
    * 🧠 Uso típico:
    * - Usuario selecciona imagen

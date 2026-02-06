@@ -4,10 +4,11 @@
  * 🎯 Componente raíz de la aplicación (Root Component)
  *
  * Este archivo orquesta TODO el flujo del frontend para OCR de INE/IFE:
- * 1) 📸 Capturar / subir imagen
- * 2) ✂️ Editar (crop/rotate/historial)
- * 3) 👁️ Previsualizar (original/editada/mejorada)
- * 4) 🔍 Procesar OCR (anverso o reverso)
+ * 1) 🔐 Verificación de autenticación
+ * 2) 📸 Capturar / subir imagen
+ * 3) ✂️ Editar (crop/rotate/historial)
+ * 4) 👁️ Previsualizar (original/editada/mejorada)
+ * 5) 🔍 Procesar OCR (anverso o reverso)
  *
  * 🧠 Arquitectura:
  * - Este componente actúa como "orquestador" (coordinador de estados)
@@ -18,6 +19,11 @@
  * - ocrService.processReverso(file)  -> POST /ocrreverso
  * - ocrService.enhanceImage(file)    -> POST /enhance (blob/png)
  *
+ * 🔐 Autenticación:
+ * - Usa authService para gestión de tokens JWT
+ * - Muestra información del usuario en navbar
+ * - Botón para cerrar sesión
+ *
  * ✅ Reglas solicitadas (cumplidas):
  * - ❌ NO se cambia lógica, funciones, nombres ni estructura
  * - ❌ NO se eliminan comentarios existentes (incluyendo bloques comentados)
@@ -25,7 +31,7 @@
  * =========================================================
  */
 
-import React, { useState,  useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
@@ -55,7 +61,8 @@ import {
   Edit,
   Preview,
   Assignment,
-  Info
+  Info,
+  Logout as LogoutIcon  // 🆕 Icono para logout
 } from '@mui/icons-material';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -68,7 +75,7 @@ import PreviewPanel from './components/PreviewPanel';
 import OCRResults from './components/OCRResults';
 
 // 🌐 Servicios
-import { ocrService } from './services/api';
+import { ocrService, authService } from './services/api';
 
 // 📋 Pasos del proceso
 /**
@@ -110,6 +117,7 @@ const steps = [
  * - Coordina navegación entre pasos
  * - Ejecuta llamadas al backend (OCR y mejora)
  * - Renderiza barra superior, drawer lateral, stepper y contenido
+ * - Gestiona autenticación y sesión del usuario
  * =========================================================
  */
 const App: React.FC = () => {
@@ -207,6 +215,29 @@ const App: React.FC = () => {
    */
   const [isImageLoading, setIsImageLoading] = useState(false);
 
+  /**
+   * 👤 user
+   * - Información del usuario autenticado.
+   * - Se carga desde localStorage al iniciar el componente.
+   */
+  const [user, setUser] = useState<any>(null);
+
+
+  // 🔍 Cargar información del usuario al inicio
+  /**
+   * 👤 useEffect (cargar usuario)
+   * ---------------------------------------------------------
+   * Al montar el componente:
+   * - Obtiene información del usuario desde localStorage
+   * - Actualiza el estado `user`
+   * - Log para debugging
+   * ---------------------------------------------------------
+   */
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    setUser(currentUser);
+    console.log('👤 Usuario cargado en App.tsx:', currentUser);
+  }, []);
 
   // 🔍 Debug: Ver estado actual
   /**
@@ -231,9 +262,37 @@ const App: React.FC = () => {
       isImageSrcEdited: imageSrc === editedImage,
       isImageSrcEnhanced: imageSrc === enhancedImage,
       isMobile,
-      isTablet
+      isTablet,
+      user: user?.username || 'No autenticado'
     });
-  }, [activeStep, imageSrc, originalImage, editedImage, enhancedImage, isMobile, isTablet]);
+  }, [activeStep, imageSrc, originalImage, editedImage, enhancedImage, isMobile, isTablet, user]);
+
+  // 🚪 Función para logout
+  /**
+   * 🚪 handleLogout
+   * ---------------------------------------------------------
+   * Cierra la sesión del usuario:
+   * 1. Limpia tokens de localStorage
+   * 2. Muestra toast de confirmación
+   * 3. Redirige a /login después de 1 segundo
+   *
+   * 🎯 UX: Delay para que el usuario vea el mensaje de confirmación
+   * ---------------------------------------------------------
+   */
+  const handleLogout = () => {
+    console.log('🚪 Cerrando sesión...');
+
+    // 🧹 Limpiar tokens
+    authService.logout();
+
+    // ✅ Toast de confirmación
+    toast.success('👋 Sesión cerrada correctamente');
+
+    // 🔄 Redirigir a login después de un breve delay
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 1000);
+  };
 
   // 📁 Manejar selección de imagen
   /**
@@ -549,7 +608,7 @@ const App: React.FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('❌ Error en OCR:', error);
-      
+
       if (error.name === 'TimeoutError') {
         // 🕒 Error específico de timeout (ya viene formateado del interceptor)
         toast.error(`❌ ${error.message}`);
@@ -557,7 +616,7 @@ const App: React.FC = () => {
         // 🔧 Otros tipos de error
         toast.error(`❌ Error en OCR: ${error.message || 'Error desconocido'}`);
       }
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -703,7 +762,7 @@ const App: React.FC = () => {
           <ImageUploader
             onImageSelect={handleImageSelect}
             onCameraOpen={() => setCameraOpen(true)}
-            // 🔧 Cambio: Eliminar la prop isMobile que no existe en ImageUploaderProps
+          // 🔧 Cambio: Eliminar la prop isMobile que no existe en ImageUploaderProps
           />
         );
 
@@ -714,9 +773,9 @@ const App: React.FC = () => {
          */
         if (isImageLoading) {
           return (
-            <Paper elevation={3} sx={{ 
-              p: isMobile ? 2 : 4, 
-              textAlign: 'center', 
+            <Paper elevation={3} sx={{
+              p: isMobile ? 2 : 4,
+              textAlign: 'center',
               borderRadius: 2,
               mx: isMobile ? 0 : 'auto'
             }}>
@@ -774,9 +833,9 @@ const App: React.FC = () => {
           <ImageEditor
             imageSrc={imageSrc}
             onImageChange={handleImageEdit}
-            onCropComplete={() => {}}
+            onCropComplete={() => { }}
             onResetToOriginal={handleResetToOriginal}
-            // 🔧 Cambio: Eliminar la prop isMobile que no existe en ImageEditorProps
+          // 🔧 Cambio: Eliminar la prop isMobile que no existe en ImageEditorProps
           />
         );
 
@@ -798,7 +857,7 @@ const App: React.FC = () => {
             onUseEdited={() => handleSelectImage('edited')}
             onUseEnhanced={() => handleSelectImage('enhanced')}
             onEnhance={handleEnhanceImage}
-            // 🔧 Cambio: Eliminar la prop isMobile que no existe en PreviewPanelProps
+          // 🔧 Cambio: Eliminar la prop isMobile que no existe en PreviewPanelProps
           />
         );
 
@@ -820,7 +879,7 @@ const App: React.FC = () => {
               processedImage: imageSrc, // Imagen que se procesó (puede estar editada)
               // confidence: ocrData?.confidence // Si tu API devuelve confianza
             }}
-            // 🔧 Cambio: Eliminar la prop isMobile que no existe en OCRResultsProps
+          // 🔧 Cambio: Eliminar la prop isMobile que no existe en OCRResultsProps
           />
         );
 
@@ -835,11 +894,13 @@ const App: React.FC = () => {
    * Layout general con mejoras responsivas:
    * - 📱 Optimizado para móviles
    * - 🖥️ Se adapta a desktop
+   * - 👤 Muestra información del usuario
+   * - 🚪 Botón para cerrar sesión
    * =========================================================
    */
   return (
-    <Box sx={{ 
-      display: 'flex', 
+    <Box sx={{
+      display: 'flex',
       minHeight: '100vh',
       // 📱 Ajustes para móviles
       '@media (max-width: 768px)': {
@@ -847,9 +908,9 @@ const App: React.FC = () => {
       }
     }}>
       {/* 📱 Barra de navegación responsiva */}
-      <AppBar 
-        position="fixed" 
-        sx={{ 
+      <AppBar
+        position="fixed"
+        sx={{
           zIndex: (theme) => theme.zIndex.drawer + 1,
           // 📱 Ajuste de altura en móviles
           '@media (max-width: 768px)': {
@@ -857,7 +918,7 @@ const App: React.FC = () => {
           }
         }}
       >
-        <Toolbar sx={{ 
+        <Toolbar sx={{
           minHeight: { xs: 56, sm: 64 },
           // 📱 Padding reducido en móviles
           paddingLeft: { xs: 1, sm: 2 },
@@ -868,7 +929,7 @@ const App: React.FC = () => {
             color="inherit"
             edge="start"
             onClick={() => setDrawerOpen(!drawerOpen)}
-            sx={{ 
+            sx={{
               mr: 2,
               display: { xs: 'flex', sm: 'flex' }
             }}
@@ -878,11 +939,11 @@ const App: React.FC = () => {
           </IconButton>
 
           {/* 🪪 Título app responsivo */}
-          <Typography 
-            variant="h6" 
-            noWrap 
-            component="div" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{
               flexGrow: 1,
               fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
               overflow: 'hidden',
@@ -892,25 +953,69 @@ const App: React.FC = () => {
             {isMobile ? '🪪 INE Scanner' : '🪪 INE Scanner'}
           </Typography>
 
-          {/* 🏠 Botón de reinicio responsivo */}
-          <Button 
-            color="inherit" 
-            onClick={handleReset} 
-            startIcon={!isMobile && <Home />}
-            sx={{
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-              padding: { xs: '4px 8px', sm: '6px 16px' },
-              minWidth: { xs: 'auto', sm: 'auto' }
-            }}
-            size={isMobile ? "small" : "medium"}
-          >
-            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-              Reiniciar
-            </Box>
-            <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
-              🏠
-            </Box>
-          </Button>
+          {/* 👤 Info usuario (solo en desktop) */}
+          {user && !isMobile && (
+            <Typography
+              variant="caption"
+              sx={{
+                mr: 2,
+                color: 'white',
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                px: 1,
+                py: 0.5,
+                borderRadius: 1
+              }}
+            >
+              👤 {user.nombre || user.username}
+            </Typography>
+          )}
+
+          {/* 🎛️ Contenedor de botones de acción */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* 🏠 Botón de reinicio responsivo */}
+            <Button
+              color="inherit"
+              onClick={handleReset}
+              startIcon={!isMobile && <Home />}
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                padding: { xs: '4px 8px', sm: '6px 16px' },
+                minWidth: { xs: 'auto', sm: 'auto' }
+              }}
+              size={isMobile ? "small" : "medium"}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Reiniciar
+              </Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                🏠
+              </Box>
+            </Button>
+
+            {/* 🚪 Botón de cerrar sesión responsivo */}
+            <Button
+              color="inherit"
+              onClick={handleLogout}
+              startIcon={!isMobile && <LogoutIcon />}
+              sx={{
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                padding: { xs: '4px 8px', sm: '6px 16px' },
+                minWidth: { xs: 'auto', sm: 'auto' },
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                '&:hover': {
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                }
+              }}
+              size={isMobile ? "small" : "medium"}
+            >
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Cerrar Sesión
+              </Box>
+              <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+                🚪
+              </Box>
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -919,10 +1024,10 @@ const App: React.FC = () => {
         variant="temporary"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        sx={{ 
+        sx={{
           width: { xs: 240, sm: 280 },
           // 📱 Ocupa toda la pantalla en móviles
-          '& .MuiDrawer-paper': { 
+          '& .MuiDrawer-paper': {
             width: { xs: '85%', sm: 280 },
             boxSizing: 'border-box',
             maxWidth: { xs: '300px', sm: '280px' }
@@ -932,27 +1037,27 @@ const App: React.FC = () => {
         <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }} />
         <List>
           {/* 🏠 Ir a inicio (paso 0) */}
-          <ListItem 
-            button 
+          <ListItem
+            button
             onClick={() => {
               setActiveStep(0);
               setDrawerOpen(false);
-            }} 
+            }}
             selected={activeStep === 0}
             sx={{ py: isMobile ? 1 : 1.5 }}
           >
             <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
               <Home fontSize={isMobile ? "small" : "medium"} />
             </ListItemIcon>
-            <ListItemText 
-              primary="Inicio" 
+            <ListItemText
+              primary="Inicio"
               primaryTypographyProps={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
             />
           </ListItem>
 
           {/* 📷 Abrir cámara */}
-          <ListItem 
-            button 
+          <ListItem
+            button
             onClick={() => {
               setCameraOpen(true);
               setDrawerOpen(false);
@@ -962,8 +1067,8 @@ const App: React.FC = () => {
             <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
               <CameraAlt fontSize={isMobile ? "small" : "medium"} />
             </ListItemIcon>
-            <ListItemText 
-              primary="Cámara" 
+            <ListItemText
+              primary="Cámara"
               primaryTypographyProps={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
             />
           </ListItem>
@@ -984,8 +1089,8 @@ const App: React.FC = () => {
             <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
               <Edit fontSize={isMobile ? "small" : "medium"} />
             </ListItemIcon>
-            <ListItemText 
-              primary="Editar" 
+            <ListItemText
+              primary="Editar"
               primaryTypographyProps={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
             />
           </ListItem>
@@ -1006,8 +1111,8 @@ const App: React.FC = () => {
             <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
               <Preview fontSize={isMobile ? "small" : "medium"} />
             </ListItemIcon>
-            <ListItemText 
-              primary="Previsualizar" 
+            <ListItemText
+              primary="Previsualizar"
               primaryTypographyProps={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
             />
           </ListItem>
@@ -1028,17 +1133,43 @@ const App: React.FC = () => {
             <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
               <Assignment fontSize={isMobile ? "small" : "medium"} />
             </ListItemIcon>
-            <ListItemText 
-              primary="Resultados" 
+            <ListItemText
+              primary="Resultados"
               primaryTypographyProps={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
+            />
+          </ListItem>
+
+          {/* 🚪 Cerrar sesión (siempre visible) */}
+          <ListItem
+            button
+            onClick={handleLogout}
+            sx={{
+              py: isMobile ? 1 : 1.5,
+              mt: 2,
+              backgroundColor: 'error.light',
+              '&:hover': {
+                backgroundColor: 'error.main',
+              }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
+              <LogoutIcon fontSize={isMobile ? "small" : "medium"} sx={{ color: 'white' }} />
+            </ListItemIcon>
+            <ListItemText
+              primary="Cerrar Sesión"
+              primaryTypographyProps={{
+                fontSize: isMobile ? '0.9rem' : '1rem',
+                color: 'white',
+                fontWeight: 'bold'
+              }}
             />
           </ListItem>
         </List>
       </Drawer>
 
       {/* 🎯 Contenido principal responsivo */}
-      <Box component="main" sx={{ 
-        flexGrow: 1, 
+      <Box component="main" sx={{
+        flexGrow: 1,
         p: { xs: 1, sm: 3 },
         mt: { xs: 7, sm: 8 },
         // 📱 Permite scroll natural en móviles
@@ -1049,21 +1180,21 @@ const App: React.FC = () => {
           p: 1
         }
       }}>
-        <Container maxWidth="lg" sx={{ 
+        <Container maxWidth="lg" sx={{
           padding: { xs: 0, sm: 2 },
           // 📱 Sin máximo en móviles
-          maxWidth: { xs: '100%', sm: 'lg' } 
+          maxWidth: { xs: '100%', sm: 'lg' }
         }}>
           {/* 📊 Stepper responsivo */}
-          <Paper elevation={2} sx={{ 
-            p: { xs: 1.5, sm: 3 }, 
-            mb: { xs: 2, sm: 3 }, 
+          <Paper elevation={2} sx={{
+            p: { xs: 1.5, sm: 3 },
+            mb: { xs: 2, sm: 3 },
             borderRadius: 2,
             overflow: 'hidden',
             mx: { xs: 0, sm: 'auto' }
           }}>
-            <Stepper 
-              activeStep={activeStep} 
+            <Stepper
+              activeStep={activeStep}
               alternativeLabel
               sx={{
                 '& .MuiStepLabel-label': {
@@ -1079,8 +1210,8 @@ const App: React.FC = () => {
             >
               {steps.map((label) => (
                 <Step key={label}>
-                  <StepLabel 
-                    sx={{ 
+                  <StepLabel
+                    sx={{
                       '& .MuiStepLabel-labelContainer': {
                         maxWidth: { xs: 60, sm: 100, md: 120 }
                       }
@@ -1094,7 +1225,7 @@ const App: React.FC = () => {
           </Paper>
 
           {/* 🎨 Contenido del paso actual */}
-          <Box sx={{ 
+          <Box sx={{
             minHeight: { xs: '300px', sm: '400px' },
             display: 'flex',
             alignItems: 'center',
@@ -1104,9 +1235,9 @@ const App: React.FC = () => {
           </Box>
 
           {/* ⏭️ Controles de navegación responsivos */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
             mt: { xs: 2, sm: 3 },
             flexDirection: { xs: 'column', sm: 'row' },
             gap: { xs: 2, sm: 0 }
@@ -1118,7 +1249,7 @@ const App: React.FC = () => {
               variant="outlined"
               startIcon={<>↩️</>}
               fullWidth={isMobile}
-              sx={{ 
+              sx={{
                 mb: { xs: 1, sm: 0 },
                 fontSize: { xs: '0.875rem', sm: '1rem' },
                 py: { xs: 1, sm: 1.5 }
@@ -1128,8 +1259,8 @@ const App: React.FC = () => {
               Anterior
             </Button>
 
-            <Box sx={{ 
-              display: 'flex', 
+            <Box sx={{
+              display: 'flex',
               gap: { xs: 1, sm: 2 },
               width: { xs: '100%', sm: 'auto' },
               flexDirection: { xs: 'column', sm: 'row' }
@@ -1142,7 +1273,7 @@ const App: React.FC = () => {
                   disabled={!imageSrc || isImageLoading}
                   endIcon={<>→</>}
                   fullWidth={isMobile}
-                  sx={{ 
+                  sx={{
                     fontSize: { xs: '0.875rem', sm: '1rem' },
                     py: { xs: 1, sm: 1.5 }
                   }}
@@ -1161,7 +1292,7 @@ const App: React.FC = () => {
                   disabled={loading || !imageSrc}
                   startIcon={loading ? <CircularProgress size={20} /> : <>🔍</>}
                   fullWidth={isMobile}
-                  sx={{ 
+                  sx={{
                     fontSize: { xs: '0.875rem', sm: '1rem' },
                     py: { xs: 1, sm: 1.5 }
                   }}
@@ -1175,13 +1306,13 @@ const App: React.FC = () => {
 
           {/* ℹ️ Información contextual responsiva */}
           {activeStep === 0 && (
-            <Alert severity="info" sx={{ 
+            <Alert severity="info" sx={{
               mt: { xs: 2, sm: 3 },
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
               py: { xs: 1, sm: 2 }
             }}>
-              <Info sx={{ 
-                mr: 1, 
+              <Info sx={{
+                mr: 1,
                 fontSize: { xs: '1rem', sm: '1.25rem' },
                 alignSelf: 'flex-start',
                 mt: { xs: 0.25, sm: 0.5 }
@@ -1194,7 +1325,7 @@ const App: React.FC = () => {
           )}
 
           {activeStep === 1 && imageSrc && (
-            <Alert severity="success" sx={{ 
+            <Alert severity="success" sx={{
               mt: { xs: 2, sm: 3 },
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
               py: { xs: 1, sm: 2 }
@@ -1216,7 +1347,7 @@ const App: React.FC = () => {
           setCameraOpen(false);
         }}
         onCapture={handleCameraCapture}
-        // 🔧 Cambio: Eliminar la prop isMobile que no existe en CameraCaptureProps
+      // 🔧 Cambio: Eliminar la prop isMobile que no existe en CameraCaptureProps
       />
 
       {/* 🍞 Notificaciones */}
