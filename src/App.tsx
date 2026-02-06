@@ -57,7 +57,6 @@ import {
 import {
   Menu as MenuIcon,
   Home,
-  CameraAlt,
   Edit,
   Preview,
   Assignment,
@@ -1055,23 +1054,7 @@ const App: React.FC = () => {
             />
           </ListItem>
 
-          {/* 📷 Abrir cámara */}
-          <ListItem
-            button
-            onClick={() => {
-              setCameraOpen(true);
-              setDrawerOpen(false);
-            }}
-            sx={{ py: isMobile ? 1 : 1.5 }}
-          >
-            <ListItemIcon sx={{ minWidth: isMobile ? 40 : 56 }}>
-              <CameraAlt fontSize={isMobile ? "small" : "medium"} />
-            </ListItemIcon>
-            <ListItemText
-              primary="Cámara"
-              primaryTypographyProps={{ fontSize: isMobile ? '0.9rem' : '1rem' }}
-            />
-          </ListItem>
+      
 
           {/* ✂️ Ir a editar (si ya hay paso > 0) */}
           <ListItem
