@@ -43,6 +43,7 @@ import axios from 'axios';
  * ---------------------------------------------------------
  */
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const API_URL2 = import.meta.env.VITE_API_URL2 || 'https://servdes1.proyectoqroo.com.mx/gsv/ibeta/api';
 
 /**
  * ⚙️ Instancia de Axios
@@ -64,6 +65,12 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
  */
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 30000,
+});
+
+
+const api2 = axios.create({
+  baseURL: API_URL2,
   timeout: 30000,
 });
 
@@ -199,7 +206,7 @@ export const authService = {
    */
   login: async (username: string, password: string) => {
     try {
-      const response = await api.post('/login', {
+      const response = await api2.post('/loginjwt', {
         username,
         password
       });
